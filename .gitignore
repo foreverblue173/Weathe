@@ -3,6 +3,7 @@ Loops/*
 Temp/*
 Images/*
 Assets/Cache/*
+__pycache__
 
 !Assets/Videos/ForecastVideos/.gitkeep
 !Images/.gitkeep
