@@ -1,0 +1,11 @@
+Assets/Videos/ForecastVideos/*
+Loops/*
+Temp/*
+Images/*
+Assets/Cache/*
+
+!Assets/Videos/ForecastVideos/.gitkeep
+!Images/.gitkeep
+!Loops/.gitkeep
+!Temp/.gitkeep
+!Assets/Cache/.gitkeep
