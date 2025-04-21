@@ -91,7 +91,7 @@ class VideoPlayer:
                 elif loc == "bottomRight":
                     location = (sw, sh +(sh-h)/2)
                 #location = (0, (sh-h)/2)
-        print()
+        
 
         self.images_to_draw.append([surface, location])
         

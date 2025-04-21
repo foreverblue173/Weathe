@@ -61,7 +61,6 @@ def getLinkFromInsinsecam(url, cache):
             src = driver.find_element(By.ID, "image0").get_attribute("src")
             width = driver.find_element(By.ID, "image0").get_attribute("width")
             height = driver.find_element(By.ID, "image0").get_attribute("height")
-            print()
             #print("PAGE")
             #print(src)
             driver.close()

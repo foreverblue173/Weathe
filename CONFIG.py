@@ -22,6 +22,8 @@ SCREEN_HEIGHT = 1080 / 1.2
 DEFAULT_WIDTH = 1554
 DEFAULT_HEIGHT = 1280
 
+ENABLE_FORECASTS = True #Set to false to disable loading any forecast stuff
+ENABLE_WEBCAMS = True #Set to false to disable any wabcam stuff
 
 #WEBCAM SPECIFIC STUFF
 REFRESH_TIME = 1800 #Measured in seconds
