@@ -10,10 +10,19 @@ class VideoPlayer:
         self.height = SCREEN_HEIGHT
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         #pygame.display.set_caption("Basic Pygame Window")
+        self.fullscreen = False 
 
         self.images_to_draw = []
 
         self.clock = pygame.time.Clock()
+
+    def toggle_fullscreen(self):
+        self.fullscreen = not self.fullscreen
+
+        if self.fullscreen:
+            self.screen = pygame.display.set_mode((self.width, self.height), pygame.FULLSCREEN)
+        else:
+            self.screen = pygame.display.set_mode((self.width, self.height))
 
     def blit(self, surface, location, type = "path", resize=False):
         if type == "path":
@@ -27,7 +36,6 @@ class VideoPlayer:
             height_scale = SCREEN_HEIGHT / h
             scale = min(width_scale, height_scale)
 
-            print(scale)
             surface = pygame.transform.scale(surface, (w * scale, h * scale))
             
             if width_scale > height_scale:
@@ -49,6 +57,9 @@ class VideoPlayer:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.close()
+            elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_f:
+                        self.toggle_fullscreen()
 
         self.screen.fill((0, 0, 0))
 

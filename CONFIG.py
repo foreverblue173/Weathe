@@ -1,7 +1,8 @@
 #TODO - make configs work
 import os
 
-CURDIR = "C:/Users/forev/Downloads/Weather"
+
+CURDIR =  os.path.dirname(os.path.abspath(__file__))
 os.chdir(CURDIR)
 
 LOOPS_FOLDER = "/Loops" #TODO CHANGE SO IT USES FULL PATH
@@ -18,6 +19,14 @@ SCREEN_WIDTH = 1920 / 1.2
 SCREEN_HEIGHT = 1080 / 1.2
 DEFAULT_WIDTH = 1554
 DEFAULT_HEIGHT = 1280
+
+
+#WEBCAM SPECIFIC STUFF
+REFRESH_TIME = 1800 #Measured in seconds
+REFRESH_MODE = "fixed" #fixed - will always refresh at REFRESH_TIME interval.
+                       #random - will refresh at random intervals averaged at REFRESH_TIME
+TIMEOUT_PERIOD = 15 #Amount of time that the program will wait for when loading cameras
+#Fullscreen doesn't really work yet aorry
 
 TRACKED_CAMERAS = [
     "http://insecam.org/en/view/239844/",

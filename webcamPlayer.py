@@ -1,7 +1,7 @@
 from videoPlayer import VideoPlayer
 from PIL import Image
 import asyncio
-from CONFIG import SCREEN_WIDTH, SCREEN_HEIGHT, TRACKED_CAMERAS, ERROR_MESSAGES, DEFAULT_WIDTH, DEFAULT_HEIGHT
+from CONFIG import SCREEN_WIDTH, SCREEN_HEIGHT, TRACKED_CAMERAS, ERROR_MESSAGES, DEFAULT_WIDTH, DEFAULT_HEIGHT, REFRESH_TIME, REFRESH_MODE, TIMEOUT_PERIOD
 import pygame
 import time
 from selenium import webdriver
@@ -12,8 +12,10 @@ from concurrent.futures import ThreadPoolExecutor
 import os
 import random
 import atexit
+import keyboard
 
-url = "http://insecam.org/en/view/752899/"
+
+#url = "http://insecam.org/en/view/752899/"
 #url = "http://184.167.26.199:8081/mjpg/video.mjpg"
 
 def openUrl(driver, url):
@@ -29,13 +31,13 @@ def getLinkFromInsinsecam(url):
         driver = webdriver.Chrome(service=service, options=options)
         driver.get(url)
         driver.minimize_window()
-        time.sleep(10)
+        time.sleep(TIMEOUT_PERIOD)
         src = driver.find_element(By.ID, "image0").get_attribute("src")
         width = driver.find_element(By.ID, "image0").get_attribute("width")
         height = driver.find_element(By.ID, "image0").get_attribute("height")
         print()
-        print("PAGE")
-        print(src)
+        #print("PAGE")
+        #print(src)
         driver.close()
 
         success = bool(src)
@@ -49,18 +51,23 @@ def getLinkFromInsinsecam(url):
 
 
 class WebcamPlayer():
-    def __init__(self):
+    def __init__(self, videoPlayer):
         self.cache = {}
         self.download_dir = os.path.abspath("Temp")
-        print(self.download_dir)
         self.images_to_delete = []
         atexit.register(self.clearImageCache)
+        self.current_image = None
+        self.cooldown = REFRESH_TIME
+        self.videoPlayer = videoPlayer
+        self.mostRecentlyDisplayedImage = None
+        self.imageLoadTime = None
 
 
     async def construct(self):
         tasks = []
         executor = ThreadPoolExecutor()
         loop = asyncio.get_running_loop()
+        asyncio.create_task(self.clearCacheLoop())
 
         for camera in TRACKED_CAMERAS:
             tasks.append(loop.run_in_executor(executor, getLinkFromInsinsecam, camera))
@@ -70,10 +77,18 @@ class WebcamPlayer():
         for l in links:
             if l[1]:
                 self.cache[l[0]] = {"status": "closed", "driver": None, "icUrl" : l[2], "width" : l[3], "height" : int(l[4])}
-    
+
+        self.chooseNewCamera()
         return self.cache
     
+    async def clearCacheLoop(self):
+        while True:
+            await asyncio.sleep(60)
+            self.clearImageCache()
+
     def onExit(self):
+        if self.mostRecentlyDisplayedImage != None:
+            self.images_to_delete.append(self.mostRecentlyDisplayedImage)
         self.clearImageCache()
         return
 
@@ -129,14 +144,13 @@ class WebcamPlayer():
             options = webdriver.ChromeOptions()
             
             options.page_load_strategy = 'none'
-           
-            options.add_argument("--enable-managed-downloads true")
-            options.enable_downloads = True
+            #options.add_argument("--enable-managed-downloads true")
+            #options.enable_downloads = True
             service = Service()
             
             driver = webdriver.Chrome(service=service, options=options)
             driver.get(url)
-            driver.minimize_window()
+            
             icUrl = None
             width = None
             height = None
@@ -146,20 +160,20 @@ class WebcamPlayer():
                 height = self.cache[url]["height"]
 
             self.cache[url] = {"status": "open", "driver": driver, "icUrl" : icUrl, "width" : width, "height": height}
-            
+            driver.minimize_window()
             return driver
         else:
             return self.cache[url]["driver"]
 
     def getImageSize(self, driver):
         link = self.getLinkFromDriver(driver)
-        print(self.cache[link])
         width = self.cache[link]["width"]
         height = self.cache[link]["height"]
         return {"width" : width, "height" : height}
 
     def getImageFromDriver(self, driver : webdriver.Chrome):
-    
+        #driver.minimize_window()
+        driver.set_window_position(-20000, 0)
         direct = self.download_dir + "\\" + str(random.randint(0,999999)) + ".png"
 
         size = self.getImageSize(driver)
@@ -168,7 +182,6 @@ class WebcamPlayer():
         y_off = (DEFAULT_HEIGHT - int(size["height"])) / 2
 
         bbox = (x_off - 120, y_off - 100, (int(size["width"])) + x_off + 150, int(size["height"] + 50) + y_off + 35)
-        print(bbox)
         driver.get_screenshot_as_file(direct)
         
         return direct
@@ -178,17 +191,55 @@ class WebcamPlayer():
         image = self.getImageFromDriver(driver)
         
         return image
+    
+    def closeCamera(self, camera):
+        driver = self.cache[camera]["driver"]
+        if driver != None:
+            driver.close()
+        self.cache[camera]["driver"] = None
+        self.cache[camera]["status"] = "closed"
+    
+    def pickRandomCamera(self):
+        #print(self.cache)
+        return random.choice(list(self.cache))
+
+    def chooseNewCamera(self):
+        if self.current_image != None:
+            self.closeCamera(self.current_image)
+        self.current_image = self.pickRandomCamera()
+
+        if REFRESH_MODE == "random":
+            sigma = 1
+            mu = -0.5 * sigma**2  #Ensures mean of ~1
+
+            x = random.lognormvariate(mu, sigma) * REFRESH_TIME
+            self.cooldown = time.time() + x
+        else:
+            self.cooldown = time.time() + REFRESH_TIME
+
+    def displayCurrentCamera(self):
+        i = self.getCurrentImageFromWebcam(self.current_image)
+        self.videoPlayer.blit(i, (0,0), resize=True)
+        if self.mostRecentlyDisplayedImage != None:
+            self.images_to_delete.append(self.mostRecentlyDisplayedImage)
+        self.mostRecentlyDisplayedImage = i
+
+    def run(self):
+        if self.current_image == None or time.time() > self.cooldown:
+            self.chooseNewCamera()
+        self.displayCurrentCamera()
+        self.videoPlayer.run()
 
 async def main():
     vPlayer = VideoPlayer()
-    wPlayer = WebcamPlayer()
+    wPlayer = WebcamPlayer(vPlayer)
     await wPlayer.construct()
-    while True:
-        i = wPlayer.getCurrentImageFromWebcam(wPlayer.getLinkFromIcLink(url))
-        vPlayer.blit(i, (0,0), resize=True)
-        vPlayer.run()
-        wPlayer.images_to_delete.append(i)
+    Running = True
+    while Running:
+        wPlayer.run()
         time.sleep(0.05)
+        if keyboard.is_pressed('esc'):
+            print("Escape key pressed. Exiting...")
+            Running = False
 
 asyncio.run(main())
-
