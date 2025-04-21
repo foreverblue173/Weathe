@@ -1,10 +1,10 @@
 
 Sorry hailey i don't really feel like making a full readme file rn but these are the required packages to run this:
 
-pip install keyboard
-pip install selenium
-pip install pillow
-pip install pygame 
+#pip install keyboard
+#pip install selenium
+#pip install pillow
+#pip install pygame 
 
 fullscreen doesn't really work yet but i'll add it in the future. Updates shouldn't be as bad in the future once you get selenium working
 
