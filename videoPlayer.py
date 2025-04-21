@@ -24,11 +24,11 @@ class VideoPlayer:
         else:
             self.screen = pygame.display.set_mode((self.width, self.height))
 
-    def blit(self, surface, location, type = "path", resize=False):
+    def blit(self, surface, loc, type = "path", resize=False, size = None):
         if type == "path":
             surface = pygame.image.load(surface)
 
-        if resize:
+        if resize == "One":
             w = surface.get_width()
             h = surface.get_height()
 
@@ -44,6 +44,54 @@ class VideoPlayer:
             else:
                 h = surface.get_height()
                 location = (0, (SCREEN_HEIGHT-h)/2)
+        
+        elif resize == "Four":
+            """
+            if location == "topLeft":
+                location = (0,0)
+            elif location == "topRight":
+                location = (SCREEN_WIDTH/2,0)
+            elif location == "bottomLeft":
+                location = (0,SCREEN_HEIGHT/2)
+            elif location == "bottomRight":
+                location = (SCREEN_WIDTH/2, SCREEN_HEIGHT/2)
+            """
+
+            w = surface.get_width()
+            h = surface.get_height()
+
+            sw = SCREEN_WIDTH / 2
+            sh = SCREEN_HEIGHT / 2
+
+            width_scale = sw / w
+            height_scale = sh / h
+            scale = min(width_scale, height_scale)
+
+            surface = pygame.transform.scale(surface, (w * scale, h * scale))
+            
+            if width_scale > height_scale:
+                w = surface.get_width()
+                if loc == "topLeft":
+                    location = ((sw-w)/2,0)
+                elif loc == "topRight":
+                    location = (sw + (sw-w)/2,0)
+                elif loc == "bottomLeft":
+                    location = ((sw-w)/2,sh)
+                elif loc == "bottomRight":
+                    location = (sw + (sw-w)/2,sh)
+                #location = ((sw-w)/2,0)
+            else:
+                h = surface.get_height()
+                if loc == "topLeft":
+                    location = (0,(sh-h)/2)
+                elif loc == "topRight":
+                    location = (sw,(sh-h)/2)
+                elif loc == "bottomLeft":
+                    location = (0, sh + (sh-h)/2)
+                elif loc == "bottomRight":
+                    location = (sw, sh +(sh-h)/2)
+                #location = (0, (sh-h)/2)
+        print()
 
         self.images_to_draw.append([surface, location])
         

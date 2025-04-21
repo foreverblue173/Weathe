@@ -93,13 +93,26 @@ class WebcamPlayer():
         self.cache = {}
         self.download_dir = os.path.abspath("Temp")
         self.images_to_delete = []
+
         self.current_image = None
-        self.current_image2 = None
-        self.current_image3 = None
-        self.current_image4 = None
         self.cooldown = REFRESH_TIME
+
+        self.current_image2 = None
+        self.cooldown2 = REFRESH_TIME
+
+        self.current_image3 = None
+        self.cooldown3 = REFRESH_TIME
+
+        self.current_image4 = None
+        self.cooldown4 = REFRESH_TIME
+
         self.videoPlayer = videoPlayer
+
         self.mostRecentlyDisplayedImage = None
+        self.mostRecentlyDisplayedImage2 = None
+        self.mostRecentlyDisplayedImage3 = None
+        self.mostRecentlyDisplayedImage4 = None
+
         self.imageLoadTime = None
 
 
@@ -144,6 +157,16 @@ class WebcamPlayer():
         #Cleans images up
         if self.mostRecentlyDisplayedImage != None:
             self.images_to_delete.append(self.mostRecentlyDisplayedImage)
+
+        if self.mostRecentlyDisplayedImage2 != None:
+            self.images_to_delete.append(self.mostRecentlyDisplayedImage2)
+
+        if self.mostRecentlyDisplayedImage3 != None:
+            self.images_to_delete.append(self.mostRecentlyDisplayedImage3)
+
+        if self.mostRecentlyDisplayedImage4 != None:
+            self.images_to_delete.append(self.mostRecentlyDisplayedImage4)
+
         self.clearImageCache()
         self.saveCache()
 
@@ -199,7 +222,6 @@ class WebcamPlayer():
     def getDriverFromUrl(self, url):
         if url not in self.cache or self.cache[url]["status"] == "closed":       
             options = webdriver.ChromeOptions()
-            
             options.page_load_strategy = 'none'
             #options.add_argument("--enable-managed-downloads true")
             #options.enable_downloads = True
@@ -262,37 +284,146 @@ class WebcamPlayer():
         #print(self.cache)
         return random.choice(list(self.cache))
 
-    def chooseNewCamera(self):
-        if self.current_image != None:
-            self.closeCamera(self.current_image)
-        self.current_image = self.pickRandomCamera()
+    def chooseNewCamera(self, camera = 1):
+        if camera == 1:
+            if self.current_image != None:
+                self.closeCamera(self.current_image)
 
-        if REFRESH_MODE == "random":
-            sigma = 1
-            mu = -0.5 * sigma**2  #Ensures mean of ~1
+            while True: #Functions as a do-while loop
+                self.current_image = self.pickRandomCamera()
+                if self.current_image not in [self.current_image3, self.current_image2, self.current_image4]:
+                    break
 
-            x = random.lognormvariate(mu, sigma) * REFRESH_TIME
-            self.cooldown = time.time() + x
-        else:
-            self.cooldown = time.time() + REFRESH_TIME
+            if REFRESH_MODE == "random":
+                sigma = 1
+                mu = -0.5 * sigma**2  #Ensures mean of ~1
+
+                x = random.lognormvariate(mu, sigma) * REFRESH_TIME
+                self.cooldown = time.time() + x
+            else:
+                self.cooldown = time.time() + REFRESH_TIME
+
+        elif camera == 2:
+            if self.current_image2 != None:
+                self.closeCamera(self.current_image2)
+
+            while True: #Functions as a do-while loop
+                self.current_image2 = self.pickRandomCamera()
+                if self.current_image2 not in [self.current_image, self.current_image3, self.current_image4]:
+                    break
+
+            if REFRESH_MODE == "random":
+                sigma = 1
+                mu = -0.5 * sigma**2  #Ensures mean of ~1
+
+                x = random.lognormvariate(mu, sigma) * REFRESH_TIME
+                self.cooldown2 = time.time() + x
+            else:
+                self.cooldown2 = time.time() + REFRESH_TIME
+
+        elif camera == 3:
+            if self.current_image3 != None:
+                self.closeCamera(self.current_image3)
+
+            while True: #Functions as a do-while loop
+                self.current_image3 = self.pickRandomCamera()
+                if self.current_image3 not in [self.current_image, self.current_image2, self.current_image4]:
+                    break
+
+            if REFRESH_MODE == "random":
+                sigma = 1
+                mu = -0.5 * sigma**2  #Ensures mean of ~1
+
+                x = random.lognormvariate(mu, sigma) * REFRESH_TIME
+                self.cooldown3 = time.time() + x
+            else:
+                self.cooldown3 = time.time() + REFRESH_TIME
+
+        elif camera == 4:
+            if self.current_image4 != None:
+                self.closeCamera(self.current_image4)
+
+            while True: #Functions as a do-while loop
+                self.current_image4 = self.pickRandomCamera()
+                if self.current_image4 not in [self.current_image, self.current_image2, self.current_image3]:
+                    break
+
+            if REFRESH_MODE == "random":
+                sigma = 1
+                mu = -0.5 * sigma**2  #Ensures mean of ~1
+
+                x = random.lognormvariate(mu, sigma) * REFRESH_TIME
+                self.cooldown4 = time.time() + x
+            else:
+                self.cooldown4 = time.time() + REFRESH_TIME
 
     def displayCurrentCamera(self):
         i = self.getCurrentImageFromWebcam(self.current_image)
-        self.videoPlayer.blit(i, (0,0), resize=True)
+        self.videoPlayer.blit(i, (0,0), resize="One")
         if self.mostRecentlyDisplayedImage != None:
             self.images_to_delete.append(self.mostRecentlyDisplayedImage)
         self.mostRecentlyDisplayedImage = i
 
-    def displayCurrentCameras(self): #Displays all 4 cameras
-        return
+    async def displayCurrentCameras(self): #Displays all 4 cameras
+        if self.current_image == None or time.time() > self.cooldown:
+            self.chooseNewCamera(1)
 
-    def run(self):
+        if self.current_image2 == None or time.time() > self.cooldown2:
+            self.chooseNewCamera(2)
+
+        if self.current_image3 == None or time.time() > self.cooldown3:
+            self.chooseNewCamera(3)
+
+        if self.current_image4 == None or time.time() > self.cooldown4:
+            self.chooseNewCamera(4)
+        
+        executor = ThreadPoolExecutor()
+        loop = asyncio.get_running_loop()
+        tasks = []
+
+        tasks.append(loop.run_in_executor(executor, self.getCurrentImageFromWebcam, self.current_image))
+        tasks.append(loop.run_in_executor(executor, self.getCurrentImageFromWebcam, self.current_image2))
+        tasks.append(loop.run_in_executor(executor, self.getCurrentImageFromWebcam, self.current_image3))
+        tasks.append(loop.run_in_executor(executor, self.getCurrentImageFromWebcam, self.current_image4))
+
+        images = await asyncio.gather(*tasks)
+
+        #Camera 1
+        i = images[0]
+        self.videoPlayer.blit(i, loc="topLeft", resize="Four")
+        if self.mostRecentlyDisplayedImage != None:
+            self.images_to_delete.append(self.mostRecentlyDisplayedImage)
+        self.mostRecentlyDisplayedImage = i
+
+        #Camera 2
+        i = images[1]
+        self.videoPlayer.blit(i, loc="topRight", resize="Four")
+        if self.mostRecentlyDisplayedImage2 != None:
+            self.images_to_delete.append(self.mostRecentlyDisplayedImage2)
+        self.mostRecentlyDisplayedImage2 = i
+
+        #Camera3
+        i = images[2]
+        self.videoPlayer.blit(i, loc="bottomLeft", resize="Four")
+        if self.mostRecentlyDisplayedImage3 != None:
+            self.images_to_delete.append(self.mostRecentlyDisplayedImage3)
+        self.mostRecentlyDisplayedImage3 = i
+
+        #Camera4
+        i = images[3]
+        self.videoPlayer.blit(i, loc="bottomRight", resize="Four")
+        if self.mostRecentlyDisplayedImage4 != None:
+            self.images_to_delete.append(self.mostRecentlyDisplayedImage4)
+        self.mostRecentlyDisplayedImage4 = i
+
+    async def run(self):
         if self.current_image == None or time.time() > self.cooldown:
             self.chooseNewCamera()
         if not MULTICAM:
             self.displayCurrentCamera()
         else:
-            return
+            await self.displayCurrentCameras()
+        
         self.videoPlayer.run()
 
 async def main():
@@ -301,8 +432,7 @@ async def main():
     await wPlayer.construct()
     Running = True
     while Running:
-        wPlayer.run()
-        time.sleep(0.05)
+        await wPlayer.run()
         if keyboard.is_pressed('esc'):
             print("Escape key pressed. Exiting...")
             Running = False

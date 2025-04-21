@@ -29,7 +29,7 @@ REFRESH_MODE = "fixed" #fixed - will always refresh at REFRESH_TIME interval.
                        #random - will refresh at random intervals averaged at REFRESH_TIME
 TIMEOUT_PERIOD = 15 #Amount of time that the program will wait for when loading cameras
 #Fullscreen doesn't really work yet aorry
-MULTICAM = False #Number of cameras to show
+MULTICAM = True #Number of cameras to show
 
 DEFAULT_CAMERAS = [
     "http://insecam.org/en/view/239844/", #Stairs in madrid
