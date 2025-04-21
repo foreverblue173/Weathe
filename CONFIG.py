@@ -28,13 +28,58 @@ REFRESH_MODE = "fixed" #fixed - will always refresh at REFRESH_TIME interval.
 TIMEOUT_PERIOD = 15 #Amount of time that the program will wait for when loading cameras
 #Fullscreen doesn't really work yet aorry
 
-TRACKED_CAMERAS = [
-    "http://insecam.org/en/view/239844/",
-    "http://insecam.org/en/view/1010711/",
-    "http://insecam.org/en/view/885346/",
-    "http://insecam.org/en/view/885576/",
-    "http://insecam.org/en/view/752899/",
-    "http://insecam.org/en/view/1004220/",
-    "http://insecam.org/en/view/973842/",
-    "http://insecam.org/en/view/911234/",
+DEFAULT_CAMERAS = [
+    "http://insecam.org/en/view/239844/", #Stairs in madrid
+    "http://insecam.org/en/view/1010711/", #SLC dog park
+    "http://insecam.org/en/view/885346/", #Highway in texas
+    "http://insecam.org/en/view/885576/", #Another outside thingy i cant see because night
+    "http://insecam.org/en/view/752899/", #Montana cabin thingy? It's not really good at night!
+    "http://insecam.org/en/view/1004220/", #New york lobby thingy
+    "http://insecam.org/en/view/973842/", #New york camera i think it's from the video
+    "http://insecam.org/en/view/911234/", #Elevator in new york. I don't think i've ever seen it move
+    "http://insecam.org/en/view/692984/", #Another moving camera in japan
+    "http://insecam.org/en/view/690922/", #Yet another moving cameria in japan
+    "http://insecam.org/en/view/942424/", #Brasil parking garage
+    "http://insecam.org/en/view/868454/", #Jaakrta road gate
+    "http://insecam.org/en/view/527063/", #NC dog pet thingy
+    "http://insecam.org/en/view/150987/", #Portland store
+    "http://insecam.org/en/view/511755/", #Waterbury ct clocktower
+    "http://insecam.org/en/view/353527/", #Weird  new york thingy
+    "http://insecam.org/en/view/692030/", #Moving camera in japan
+    "http://insecam.org/en/view/882498/", #Scary russian hallway
+    "http://insecam.org/en/view/880541/", #Movable camera in italy
+    "http://insecam.org/en/view/891134/", #schizo mexx thingy
+    "http://insecam.org/en/view/811506/", #Russia highway
+    "http://insecam.org/en/view/891802/", #Place in iran
+    "http://insecam.org/en/view/919648/", #Casino chicago
+    "http://insecam.org/en/view/373083/", #Rooftop pool in miami
+    "http://insecam.org/en/view/400553/", #Office in vietnam
+    "http://insecam.org/en/view/442745/",#Marina view camera in spain
+    "http://insecam.org/en/view/241072/", #Thinky in russia
+    "http://insecam.org/en/view/229/", #Streets in tokyo
+    "http://insecam.org/en/view/995986/", #Food place in tokyo
+    "http://insecam.org/en/view/628599/", #Bus deopt in chile, good night lighting
+    "http://insecam.org/en/view/371870/", #Chicken coop in switzerland
+    "http://insecam.org/en/view/1008795/", #Soccer stadium in chile
+    "http://insecam.org/en/view/934534/", #Street camera in brazil good night lighting
+    "http://insecam.org/en/view/983159/", #Store? in turkey
+    "http://insecam.org/en/view/826157/", #Bridge cam of sydney
+    "http://insecam.org/en/view/914326/", #Storage closet in iran i think
+    "http://insecam.org/en/view/888584/", #Truck bay in brasil
+    "http://insecam.org/en/view/857881/", #Solar panels in turkey
+    "http://insecam.org/en/view/858482/", #Store in taiwan
+    "http://insecam.org/en/view/911230/", #appartment cam in new york
+    "http://insecam.org/en/view/241070/", #Chicago play place
+    "http://insecam.org/en/view/504141/", #River thing in pennsylvania 
+    "http://insecam.org/en/view/237638/", #Pool bar in paris
+    "http://insecam.org/en/view/451528/", #Auckland bay
+    "http://insecam.org/en/view/258713/", #Lousville religous building. also has funny description
+    "http://insecam.org/en/view/970532/", #Bullet trainyard in japan
+    "http://insecam.org/en/view/871354/", #Casino in pennsylvania
 ]
+
+TRACKED_CAMERAS = [
+    "", #Add links here
+]
+
+TRACKED_CAMERAS = TRACKED_CAMERAS + DEFAULT_CAMERAS #COMMENT OUT THIS LINE TO ONLY USE CUSTOM CAMERAS
