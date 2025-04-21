@@ -1,7 +1,7 @@
 from videoPlayer import VideoPlayer
 from PIL import Image
 import asyncio
-from CONFIG import SCREEN_WIDTH, SCREEN_HEIGHT, TRACKED_CAMERAS, ERROR_MESSAGES, DEFAULT_WIDTH, DEFAULT_HEIGHT, REFRESH_TIME, REFRESH_MODE, TIMEOUT_PERIOD
+from CONFIG import SCREEN_WIDTH, SCREEN_HEIGHT, TRACKED_CAMERAS, ERROR_MESSAGES, DEFAULT_WIDTH, DEFAULT_HEIGHT, REFRESH_TIME, REFRESH_MODE, TIMEOUT_PERIOD, MULTICAM, CACHE_FOLDER
 import pygame
 import time
 from selenium import webdriver
@@ -13,7 +13,7 @@ import os
 import random
 import atexit
 import keyboard
-
+import pickle
 
 #url = "http://insecam.org/en/view/752899/"
 #url = "http://184.167.26.199:8081/mjpg/video.mjpg"
@@ -22,41 +22,81 @@ def openUrl(driver, url):
         driver.get(url)
         time.sleep(3)
 
-def getLinkFromInsinsecam(url):
-    try:
-        options = Options()
-        options.page_load_strategy = 'none'
-        options.add_argument("--start-minimized") 
-        service = Service()
-        driver = webdriver.Chrome(service=service, options=options)
-        driver.get(url)
-        driver.minimize_window()
-        time.sleep(TIMEOUT_PERIOD)
-        src = driver.find_element(By.ID, "image0").get_attribute("src")
-        width = driver.find_element(By.ID, "image0").get_attribute("width")
-        height = driver.find_element(By.ID, "image0").get_attribute("height")
-        print()
-        #print("PAGE")
-        #print(src)
-        driver.close()
-
-        success = bool(src)
-
-        return [src, success, url, width, height]
+def getDictFromLinkAndCache(url, cache):
+    for l in cache:
+        if cache[l]["icUrl"] == url:
+            cache[l]["directUrl"] = l
+            return cache[l]
     
-    except:
-        if ERROR_MESSAGES:
-            print("Error loading " + str(url))
-        return[url, False, url, 0, 0]
+    return None
 
+def isUrlCached(url, cache):
+    return bool(getDictFromLinkAndCache(url, cache))
+
+def getDataFromUrlAndCache(url, cache):
+    d = getDictFromLinkAndCache(url, cache)
+    if d == None:
+        return None
+    src = d["directUrl"]
+    width = d["width"]
+    height = d["height"]
+    try:
+        isActive = d["isActive"]
+    except:
+        isActive = True
+
+    return [src, True, url, width, height, isActive]
+
+def getLinkFromInsinsecam(url, cache):
+    if not isUrlCached(url, cache):
+        try:
+            options = Options()
+            options.page_load_strategy = 'none'
+            options.add_argument("--start-minimized") 
+            service = Service()
+            driver = webdriver.Chrome(service=service, options=options)
+            driver.get(url)
+            driver.minimize_window()
+            time.sleep(TIMEOUT_PERIOD)
+            src = driver.find_element(By.ID, "image0").get_attribute("src")
+            width = driver.find_element(By.ID, "image0").get_attribute("width")
+            height = driver.find_element(By.ID, "image0").get_attribute("height")
+            print()
+            #print("PAGE")
+            #print(src)
+            driver.close()
+
+            success = bool(src)
+
+            return [src, success, url, width, height, True]
+        
+        except:
+            if ERROR_MESSAGES:
+                print("Error loading " + str(url))
+            return[url, False, url, 0, 0, False]
+    else:
+        return getDataFromUrlAndCache(url, cache)
+
+def loadCache():
+    filename = CACHE_FOLDER + "/linkCache.pkl"
+
+    if os.path.exists(filename):
+        with open(filename, "rb") as f:
+            data = pickle.load(f)
+    else:
+        return {} 
+
+    return data
 
 class WebcamPlayer():
     def __init__(self, videoPlayer):
         self.cache = {}
         self.download_dir = os.path.abspath("Temp")
         self.images_to_delete = []
-        atexit.register(self.clearImageCache)
         self.current_image = None
+        self.current_image2 = None
+        self.current_image3 = None
+        self.current_image4 = None
         self.cooldown = REFRESH_TIME
         self.videoPlayer = videoPlayer
         self.mostRecentlyDisplayedImage = None
@@ -69,16 +109,24 @@ class WebcamPlayer():
         loop = asyncio.get_running_loop()
         asyncio.create_task(self.clearCacheLoop())
 
+        loadedCache = loadCache()
+
         for camera in TRACKED_CAMERAS:
-            tasks.append(loop.run_in_executor(executor, getLinkFromInsinsecam, camera))
+            tasks.append(loop.run_in_executor(executor, getLinkFromInsinsecam, camera, loadedCache))
         
         links = await asyncio.gather(*tasks)
 
+        newCache = {}
+
         for l in links:
             if l[1]:
-                self.cache[l[0]] = {"status": "closed", "driver": None, "icUrl" : l[2], "width" : l[3], "height" : int(l[4])}
+                newCache[l[0]] = {"status": "closed", "driver": None, "icUrl" : l[2], "width" : l[3], "height" : int(l[4]), "isActive" : l[5]}
+
+        loadedCache.update(newCache)
+        self.cache = loadedCache
 
         self.chooseNewCamera()
+        atexit.register(self.onExit)
         return self.cache
     
     async def clearCacheLoop(self):
@@ -86,10 +134,19 @@ class WebcamPlayer():
             await asyncio.sleep(60)
             self.clearImageCache()
 
+    def saveCache(self): #Saves self.cache so it can be loaded later
+        for c in self.cache:
+            self.closeCamera(c)
+        with open(CACHE_FOLDER + "\\linkCache.pkl", "wb") as f:
+            pickle.dump(self.cache, f)
+
     def onExit(self):
+        #Cleans images up
         if self.mostRecentlyDisplayedImage != None:
             self.images_to_delete.append(self.mostRecentlyDisplayedImage)
         self.clearImageCache()
+        self.saveCache()
+
         return
 
     def clearImageCache(self):
@@ -150,16 +207,19 @@ class WebcamPlayer():
             
             driver = webdriver.Chrome(service=service, options=options)
             driver.get(url)
-            
+            driver.set_window_position(-20000, 0)
             icUrl = None
             width = None
             height = None
+            isActive = False
             if url in self.cache:
                 icUrl = self.cache[url]["icUrl"]
                 width = self.cache[url]["width"]
                 height = self.cache[url]["height"]
+                isActive = self.cache[url]["isActive"]
 
-            self.cache[url] = {"status": "open", "driver": driver, "icUrl" : icUrl, "width" : width, "height": height}
+
+            self.cache[url] = {"status": "open", "driver": driver, "icUrl" : icUrl, "width" : width, "height": height, "isActive" : isActive}
             driver.minimize_window()
             return driver
         else:
@@ -173,7 +233,6 @@ class WebcamPlayer():
 
     def getImageFromDriver(self, driver : webdriver.Chrome):
         #driver.minimize_window()
-        driver.set_window_position(-20000, 0)
         direct = self.download_dir + "\\" + str(random.randint(0,999999)) + ".png"
 
         size = self.getImageSize(driver)
@@ -224,10 +283,16 @@ class WebcamPlayer():
             self.images_to_delete.append(self.mostRecentlyDisplayedImage)
         self.mostRecentlyDisplayedImage = i
 
+    def displayCurrentCameras(self): #Displays all 4 cameras
+        return
+
     def run(self):
         if self.current_image == None or time.time() > self.cooldown:
             self.chooseNewCamera()
-        self.displayCurrentCamera()
+        if not MULTICAM:
+            self.displayCurrentCamera()
+        else:
+            return
         self.videoPlayer.run()
 
 async def main():

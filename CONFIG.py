@@ -2,12 +2,14 @@
 import os
 
 
-CURDIR =  os.path.dirname(os.path.abspath(__file__))
+CURDIR =  os.path.dirname(os.path.abspath(__file__)) #Sets current directory as the directory this python file is in
 os.chdir(CURDIR)
 
 LOOPS_FOLDER = "/Loops" #TODO CHANGE SO IT USES FULL PATH
 ASSETS_FOLDER = CURDIR + "/Assets"
 IMAGE_FOLDER = CURDIR + "/Images" #TODO MAKE SO WHOLE PROGRAM USES THIS IMAGE_FOLDER
+CACHE_FOLDER = ASSETS_FOLDER + "\\Cache" #Where files are cached
+
 TRACKED_RADARS = ["KIND", "KMTX"]
 TRACKED_LOCATIONS = [[39.6137,-86.1067]] #First city will be primary city
 DEFAULT_FONT = ASSETS_FOLDER + "/Fonts/FranklinGothic.ttf"
@@ -27,6 +29,7 @@ REFRESH_MODE = "fixed" #fixed - will always refresh at REFRESH_TIME interval.
                        #random - will refresh at random intervals averaged at REFRESH_TIME
 TIMEOUT_PERIOD = 15 #Amount of time that the program will wait for when loading cameras
 #Fullscreen doesn't really work yet aorry
+MULTICAM = False #Number of cameras to show
 
 DEFAULT_CAMERAS = [
     "http://insecam.org/en/view/239844/", #Stairs in madrid
@@ -76,6 +79,29 @@ DEFAULT_CAMERAS = [
     "http://insecam.org/en/view/258713/", #Lousville religous building. also has funny description
     "http://insecam.org/en/view/970532/", #Bullet trainyard in japan
     "http://insecam.org/en/view/871354/", #Casino in pennsylvania
+    "http://insecam.org/en/view/722313/", #Woodworking place in japan
+    "http://insecam.org/en/view/402722/", #Place in italy
+    "http://insecam.org/en/view/692030/", #Yet another factory in japan
+    "http://insecam.org/en/view/689864/", #Another factory in japan
+    "http://insecam.org/en/view/748057/", #Spain beach
+    "http://insecam.org/en/view/1010777/", #Cool solar panels in japan
+    "http://insecam.org/en/view/1010735/", #More cool solar panels in japan
+    "http://insecam.org/en/view/1010634/", #Solar panels
+    "http://insecam.org/en/view/1004889/", #Car place in italy
+    "http://insecam.org/en/view/813979/", #Church in indianapolis
+    "http://insecam.org/en/view/391312/", #Parking lot in minneapolis
+    "http://insecam.org/en/view/798093/", #Lake in norway
+    "http://insecam.org/en/view/423527/", #stairwell thingy in mankato
+    "http://insecam.org/en/view/849718/", #Camera at college in mankato
+    "http://insecam.org/en/view/1010690/", #Evansville bridge
+    "http://insecam.org/en/view/817622/", #Stoplight in tennesee
+    "http://insecam.org/en/view/768708/", #Bridge in alabama
+    "http://insecam.org/en/view/744797/", #Gazebo in ohio
+    "http://insecam.org/en/view/738706/", #Street in greenwich
+    "http://insecam.org/en/view/723208/", #Moving camera in baltimore
+    "http://insecam.org/en/view/571014/", #Hallway in NY
+    "http://insecam.org/en/view/571017/", #Hallway in NY
+    "http://insecam.org/en/view/856159/", #Greenwood village in denver intersection 
 ]
 
 TRACKED_CAMERAS = [
