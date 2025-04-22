@@ -67,7 +67,7 @@ class VideoPlayer:
             height_scale = sh / h
             scale = min(width_scale, height_scale)
 
-            surface = pygame.transform.scale(surface, (w * scale, h * scale))
+            surface = pygame.transform.scale(surface, (int(w * scale), int(h * scale)))
             
             if width_scale > height_scale:
                 w = surface.get_width()
