@@ -26,7 +26,7 @@ ENABLE_FORECASTS = True #Set to false to disable loading any forecast stuff
 ENABLE_WEBCAMS = True #Set to false to disable any wabcam stuff
 
 #WEBCAM SPECIFIC STUFF
-REFRESH_TIME = 1800 #Measured in seconds
+REFRESH_TIME = 300 #1800 #Measured in seconds
 REFRESH_MODE = "fixed" #fixed - will always refresh at REFRESH_TIME interval.
                        #random - will refresh at random intervals averaged at REFRESH_TIME
 TIMEOUT_PERIOD = 15 #Amount of time that the program will wait for when loading cameras
